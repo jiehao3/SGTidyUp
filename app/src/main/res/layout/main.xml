@@ -7,12 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MainMenu">
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainlayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Menu Button -->
         <ImageView
             android:id="@+id/menubutton"
             android:layout_width="wrap_content"
@@ -24,63 +24,93 @@
             tools:layout_editor_absoluteX="7dp"
             tools:layout_editor_absoluteY="30dp" />
 
-        <TextView
-            android:id="@+id/AreaStatus"
+        <!-- Container for Status Check and Area Status -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/holder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="84dp"
-            android:text="Area Status: "
-            android:textSize="20sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
+            android:padding="8dp"
+            android:background="@drawable/statusbkg"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp">
 
+            <!-- Status Check ImageView -->
+            <ImageView
+                android:id="@+id/statuscheck"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:padding="4dp"
+                android:src="@drawable/img_4"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginStart="0dp" />
+
+            <!-- Area Status TextView -->
+            <TextView
+                android:id="@+id/AreaStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Area Status: "
+                android:textSize="20sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/statuscheck"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginStart="0dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Map Fragment -->
         <fragment
             android:id="@+id/map3"
             android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="349dp"
-            android:layout_height="389dp"
-            android:layout_marginTop="140dp"
+            android:layout_width="408dp"
+            android:layout_height="436dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintBottom_toTopOf="@id/searchbar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/holder"
             tools:context=".MainMenu" />
+
+        <!-- Search Bar -->
+
+        <!-- Floating Action Button -->
 
         <SearchView
             android:id="@+id/searchbar"
-            android:focusable="false"
-            android:layout_width="272dp"
+            android:layout_width="0dp"
             android:layout_height="44dp"
-            android:layout_margin="10dp"
-            android:layout_marginTop="92dp"
+            android:layout_margin="16dp"
+            android:layout_marginBottom="8dp"
             android:background="@drawable/bg_search"
             android:elevation="5dp"
+            android:focusable="false"
             android:iconifiedByDefault="false"
             android:queryHint="Search Here"
+            app:layout_constraintBottom_toTopOf="@id/floatingActionButton"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.473"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintHorizontal_bias="0.531"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatingActionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:backgroundTint="@color/white"
             android:src="@drawable/baseline_add_24"
             app:backgroundTint="@color/grey"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:maxImageSize="40dp"
-            android:layout_marginBottom="16dp"
-            tools:layout_editor_absoluteX="177dp"
-            tools:layout_editor_absoluteY="629dp" />
+            app:maxImageSize="40dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+    <!-- Navigation View -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"

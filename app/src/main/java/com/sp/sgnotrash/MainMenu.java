@@ -41,6 +41,8 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     private DrawerLayout drawerLayout;
     private ImageView menubutton;
 
+    private ImageView statuscheck;
+
     private SearchView searchview;
     private GPSTracker gpsTracker;
     private static final int PERMISSION_REQUEST_CODE = 1001;
@@ -69,6 +71,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         drawerLayout = findViewById(R.id.drawer_layout);
         areaStatusText = findViewById(R.id.AreaStatus);
         mainlayout = findViewById(R.id.mainlayout);
+        statuscheck = findViewById(R.id.statuscheck);
 
         menubutton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,12 +186,15 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                     if (markerCount >= 0 && markerCount <= 1) {
                         areaStatusText.setText("Area Status: Clean");
                         mainlayout.setBackgroundColor(Color.parseColor("#DDE4D9"));
+                        statuscheck.setImageResource(R.drawable.img_4);
                     } else if (markerCount >= 2 && markerCount <= 5) {
                         areaStatusText.setText("Area Status: Slightly Dirty");
                         mainlayout.setBackgroundColor(Color.parseColor("#EDF795"));
+                        statuscheck.setImageResource(R.drawable.img_5);
                     } else {
                         areaStatusText.setText("Area Status: Very Dirty");
                         mainlayout.setBackgroundColor(Color.parseColor("#9E4242"));
+                        statuscheck.setImageResource(R.drawable.img_3);
                     }
                 }
                 handler.postDelayed(this, 5000);
