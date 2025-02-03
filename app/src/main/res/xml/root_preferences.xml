@@ -1,0 +1,97 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Messaging Preferences -->
+    <PreferenceCategory app:title="@string/messages_header">
+
+        <EditTextPreference
+            app:key="signature"
+            app:title="@string/signature_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue="reply"
+            app:entries="@array/reply_entries"
+            app:entryValues="@array/reply_values"
+            app:key="reply"
+            app:title="@string/reply_title"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Notification Preferences -->
+    <PreferenceCategory app:title="@string/notifications_header">
+
+        <MultiSelectListPreference
+            app:key="notifications"
+            app:title="@string/notifications_title"
+            app:entries="@array/notification_entries"
+            app:entryValues="@array/notification_values"
+            app:defaultValue="@array/notification_default_values"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Map Preferences -->
+    <PreferenceCategory app:title="@string/map_settings_header">
+
+        <ListPreference
+            app:key="map_type"
+            app:title="@string/map_type_title"
+            app:entries="@array/map_type_entries"
+            app:entryValues="@array/map_type_values"
+            app:defaultValue="normal"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Theme Preferences -->
+    <PreferenceCategory app:title="@string/theme_settings_header">
+
+        <ListPreference
+            app:key="theme"
+            app:title="@string/theme_title"
+            app:entries="@array/theme_entries"
+            app:entryValues="@array/theme_values"
+            app:defaultValue="system"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Sync Preferences -->
+    <PreferenceCategory app:title="@string/sync_header">
+
+        <SwitchPreferenceCompat
+            app:key="sync"
+            app:title="@string/sync_title" />
+
+        <SwitchPreferenceCompat
+            app:dependency="sync"
+            app:key="attachment"
+            app:summaryOff="@string/attachment_summary_off"
+            app:summaryOn="@string/attachment_summary_on"
+            app:title="@string/attachment_title" />
+
+    </PreferenceCategory>
+
+    <!-- Location Settings -->
+    <PreferenceCategory app:title="@string/location_settings_header">
+
+        <ListPreference
+            app:key="update_interval"
+            app:title="@string/update_interval_title"
+            app:entries="@array/update_interval_entries"
+            app:entryValues="@array/update_interval_values"
+            app:defaultValue="10"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:key="gps_accuracy"
+            app:title="@string/gps_accuracy_title"
+            app:entries="@array/gps_accuracy_entries"
+            app:entryValues="@array/gps_accuracy_values"
+            app:defaultValue="high"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

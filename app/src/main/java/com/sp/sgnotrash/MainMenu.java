@@ -1,11 +1,13 @@
 package com.sp.sgnotrash;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -14,12 +16,17 @@ import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
+import androidx.core.view.GravityCompat;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -30,9 +37,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
@@ -53,7 +62,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
 
     private ConstraintLayout mainlayout;
 
-    private List<Marker> markers = new ArrayList<>(); // List to store markers
+    private List<Marker> markers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +88,31 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                 openDrawer();
             }
         });
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id = item.getItemId();
+
+                // Handle item clicks
+                if (id == R.id.contactsupport) {
+                    showSupportOptions();
+                } else if (id == R.id.webpage) {
+                    Intent intent = new Intent(MainMenu.this, WebPageActivity.class);
+                    startActivity(intent);
+                } else if (id == R.id.settings) {
+                    Intent intent = new Intent(MainMenu.this, SettingsActivity.class);
+                    startActivity(intent);
+                }
+
+                // Close the drawer after handling the click
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }
+        });
+
+
+
 
         searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -96,7 +130,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                         Address address = addresslist.get(0);
                         LatLng latlng = new LatLng(address.getLatitude(), address.getLongitude());
                         Marker marker = myMap.addMarker(new MarkerOptions().position(latlng).title(location));
-                        markers.add(marker); // Add marker to the list
+                        markers.add(marker);
                         myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 15));
                     } else {
                         Toast.makeText(MainMenu.this, "Location not found", Toast.LENGTH_SHORT).show();
@@ -201,6 +235,8 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             }
         };
         handler.post(refreshRunnable);
+
+
     }
 
 
@@ -232,6 +268,23 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         bottomSheetDialog.setContentView(bottomSheetView);
 
         bottomSheetView.findViewById(R.id.cancel_button).setOnClickListener(v -> bottomSheetDialog.dismiss());
+        bottomSheetView.findViewById(R.id.Report).setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            startActivity(new Intent(this, ReportActivity.class));
+            Toast.makeText(this, "Report clicked", Toast.LENGTH_SHORT).show();
+        });
+
+        bottomSheetView.findViewById(R.id.Request).setOnClickListener(v -> {
+            bottomSheetDialog.dismiss();
+            startActivity(new Intent(this, RequestActivity.class));
+            Toast.makeText(this, "Request clicked", Toast.LENGTH_SHORT).show();
+        });
+
+        bottomSheetView.findViewById(R.id.ShowAlllocations).setOnClickListener(v -> {
+            showAllRecyclingBins();
+            bottomSheetDialog.dismiss();
+            Toast.makeText(this, "Bins clicked", Toast.LENGTH_SHORT).show();
+        });
 
         bottomSheetDialog.show();
     }
@@ -240,5 +293,59 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         if (drawerLayout != null) {
             drawerLayout.openDrawer(findViewById(R.id.nav_view));
         }
+    }
+    private void showSupportOptions() {
+        // List of support options (names and phone numbers)
+        String[] supportOptions = {"Local Call", "Overseas Call"};
+        String[] phoneNumbers = {"+65 6225 5632", "+65 6225 5632"};
+
+        // Create an AlertDialog to display the options
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("To report suspected scams or verify the identity of the NEA officer");
+
+        // Set the list of options
+        builder.setItems(supportOptions, (dialog, which) -> {
+            // Get the selected phone number
+            String selectedPhoneNumber = phoneNumbers[which];
+
+            // Launch the phone app with the selected number
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse("tel:" + selectedPhoneNumber));
+            startActivity(intent);
+        });
+
+        // Show the dialog
+        builder.show();
+    }
+    private void showAllRecyclingBins() {
+        // Clear existing markers
+        //myMap.clear();
+        //markers.clear();
+
+        List<LatLng> recyclingLocations = Arrays.asList(
+                new LatLng(1.329266, 103.794152),
+                new LatLng(1.319129,103.635194),
+                new LatLng(1.2801, 103.8509)
+        );
+
+
+        for (LatLng location : recyclingLocations) {
+            Marker marker = myMap.addMarker(new MarkerOptions()
+                    .position(location)
+                    .title("E-waste / Ink and Toner Cartridges Recycling\n" +
+                            "Bin collection; E-waste accepted: Batteries and Lamps only")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.img_9)));
+
+            markers.add(marker);
+        }
+
+        // Zoom to show all markers
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng location : recyclingLocations) {
+            builder.include(location);
+        }
+        LatLngBounds bounds = builder.build();
+
+        myMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100)); // 100px padding
     }
 }

@@ -14,4 +14,45 @@
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+
+    <!-- Sync Preferences -->
+
+    <string name="notifications_header">Notification Preferences</string>
+    <string name="map_settings_header">Map Preferences</string>
+    <string name="theme_settings_header">Theme Preferences</string>
+
+    <string name="location_settings_header">Location Preferences</string>
+
+    <!-- Messaging Preferences -->
+
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notification Settings</string>
+
+    <!-- Map Preferences -->
+    <string name="map_type_title">Map Type</string>
+
+    <!-- Theme Preferences -->
+    <string name="theme_title">App Theme</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Enable Sync</string>
+    <string name="attachment_title">Include Attachments</string>
+    <string name="attachment_summary_on">Attachments will be synced</string>
+    <string name="attachment_summary_off">Attachments will not be synced</string>
+
+    <!-- Location Preferences -->
+    <string name="update_interval_title">Location Update Interval</string>
+    <string name="gps_accuracy_title">GPS Accuracy</string>
+
 </resources>

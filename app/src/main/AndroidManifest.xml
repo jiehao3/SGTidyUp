@@ -14,14 +14,31 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SGNOTrash"
-        tools:targetApi="31">
+        android:theme="@style/Theme.SGNOTrash.NoActionBar"
+        tools:targetApi="31"
+        >
+        <activity
+            android:name=".RequestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SGNOTrash.NoActionBar"/>/>
+        <activity
+            android:name=".ReportActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SGNOTrash.NoActionBar"/>/>
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings" />
+        <activity
+            android:name=".WebPageActivity"
+            android:exported="false" />
         <activity
             android:name=".MainMenu"
             android:exported="true"
             android:theme="@style/Theme.SGNOTrash.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -49,8 +66,6 @@
             android:name=".GPSTracker"
             android:enabled="false"
             android:exported="false" />
-
-
     </application>
 
 </manifest>
