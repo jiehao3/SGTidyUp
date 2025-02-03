@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -42,6 +43,7 @@ public class ReportActivity extends AppCompatActivity {
     }
 
     private void addReport() {
+        startActivity(new Intent(this, ReportForm.class));
 
     }
 

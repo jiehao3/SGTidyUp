@@ -4,12 +4,14 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -38,8 +40,11 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
+import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +67,10 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
 
     private ConstraintLayout mainlayout;
 
+    private boolean show = false;
+
     private List<Marker> markers = new ArrayList<>();
+    private List<Marker> recyclingmarkers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +139,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                         LatLng latlng = new LatLng(address.getLatitude(), address.getLongitude());
                         Marker marker = myMap.addMarker(new MarkerOptions().position(latlng).title(location));
                         markers.add(marker);
-                        myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 15));
+                        myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 16));
                     } else {
                         Toast.makeText(MainMenu.this, "Location not found", Toast.LENGTH_SHORT).show();
                     }
@@ -189,7 +197,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                     LatLng myLocation = new LatLng(latitude, longitude);
                     Marker marker = myMap.addMarker(new MarkerOptions().position(myLocation).title("Your Current Location"));
                     markers.add(marker); // Add marker to the list
-                    myMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+                    myMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16));
                 } else {
                     Toast.makeText(this, "Unable to get location, try again.", Toast.LENGTH_SHORT).show();
                 }
@@ -262,6 +270,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private void openBottomSheet() {
+
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottomsheetlayout, null);
 
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
@@ -281,7 +290,12 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         });
 
         bottomSheetView.findViewById(R.id.ShowAlllocations).setOnClickListener(v -> {
-            showAllRecyclingBins();
+            if (show == false) {
+                showAllRecyclingBins();
+            }
+            else{
+                removeRecycleBinsMarkers();
+            }
             bottomSheetDialog.dismiss();
             Toast.makeText(this, "Bins clicked", Toast.LENGTH_SHORT).show();
         });
@@ -317,35 +331,80 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         // Show the dialog
         builder.show();
     }
-    private void showAllRecyclingBins() {
-        // Clear existing markers
-        //myMap.clear();
-        //markers.clear();
-
-        List<LatLng> recyclingLocations = Arrays.asList(
-                new LatLng(1.329266, 103.794152),
-                new LatLng(1.319129,103.635194),
-                new LatLng(1.2801, 103.8509)
-        );
-
-
-        for (LatLng location : recyclingLocations) {
-            Marker marker = myMap.addMarker(new MarkerOptions()
-                    .position(location)
-                    .title("E-waste / Ink and Toner Cartridges Recycling\n" +
-                            "Bin collection; E-waste accepted: Batteries and Lamps only")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.img_9)));
-
-            markers.add(marker);
-        }
-
-        // Zoom to show all markers
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for (LatLng location : recyclingLocations) {
-            builder.include(location);
-        }
-        LatLngBounds bounds = builder.build();
-
-        myMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100)); // 100px padding
+    private static class GeoJSON {
+        List<Feature> features;
     }
+
+    private static class Feature {
+        Geometry geometry;
+        Properties properties;
+    }
+
+    private static class Geometry {
+        String type;
+        List<Double> coordinates;
+    }
+
+    private static class Properties {
+        String NAME;
+        String DESCRIPTION;
+        String Address;
+        String TYPE_LEVEL_;
+        String TYPE_LEVEL1;
+        String LAYER;
+    }
+
+    private void showAllRecyclingBins() {
+        List<Feature> recyclingFeatures = loadRecyclingLocationsFromGeoJSON();
+        if (recyclingFeatures.isEmpty()) {
+            Toast.makeText(this, "No recycling bins found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        for (Feature feature : recyclingFeatures) {
+            if (feature.geometry != null && feature.geometry.coordinates != null && feature.geometry.coordinates.size() >= 2) {
+                LatLng location = new LatLng(feature.geometry.coordinates.get(1), feature.geometry.coordinates.get(0));
+
+
+                Marker marker = myMap.addMarker(new MarkerOptions()
+                        .position(location)
+                        .title("Recycling Bin")
+                        .snippet("Deposit papers, plastics, glass and metals")
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.img_9)));
+
+                recyclingmarkers.add(marker);
+            }
+        }
+        show = true;
+    }
+    private void removeRecycleBinsMarkers(){
+        for (Marker marker : recyclingmarkers) {
+            marker.remove();
+        }
+        recyclingmarkers.clear();
+        show = false;
+    }
+    private List<Feature> loadRecyclingLocationsFromGeoJSON() {
+        List<Feature> features = new ArrayList<>();
+        try {
+            String json = readAssetsFile("recyclingbins.geojson");
+            Gson gson = new Gson();
+            GeoJSON geoJSON = gson.fromJson(json, GeoJSON.class);
+            features = geoJSON.features;
+        } catch (Exception e) {
+            Log.e("GeoJSON", "Error loading locations", e);
+        }
+        return features;
+    }
+
+    private String readAssetsFile(String filename) throws IOException {
+        AssetManager assetManager = getAssets();
+        InputStream inputStream = assetManager.open(filename);
+        int size = inputStream.available();
+        byte[] buffer = new byte[size];
+        inputStream.read(buffer);
+        inputStream.close();
+        return new String(buffer, StandardCharsets.UTF_8);
+    }
+
 }

@@ -3,6 +3,7 @@ package com.sp.sgnotrash;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -40,6 +41,7 @@ public class RequestActivity extends AppCompatActivity {
     }
 
     private void addRequest() {
+        startActivity(new Intent(this, RequestForm.class));
 
     }
 
