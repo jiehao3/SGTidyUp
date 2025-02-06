@@ -25,9 +25,9 @@ public class GPSTracker extends Service implements LocationListener, ActivityCom
 
     protected LocationManager locationManager;
 
-    Location location;
-    double latitude;
-    double longitude;
+    static Location location;
+    static double latitude;
+    static double longitude;
     public GPSTracker() {
         getLocation();
     }
@@ -87,14 +87,14 @@ public class GPSTracker extends Service implements LocationListener, ActivityCom
             }
         }
     }
-    public Double getLatitude(){
+    public static Double getLatitude(){
         if(location != null){
             latitude = location.getLatitude();
 
         }
         return latitude;
     }
-    public Double getLongitude(){
+    public static Double getLongitude(){
         if (location != null){
             longitude = location.getLongitude();
         }

@@ -18,6 +18,9 @@
         android:theme="@style/Theme.SGNOTrash.NoActionBar"
         tools:targetApi="31">
         <activity
+            android:name=".CleanForm"
+            android:exported="false" />
+        <activity
             android:name=".ReportForm"
             android:exported="false" />
         <activity

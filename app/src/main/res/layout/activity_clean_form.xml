@@ -6,21 +6,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#E8EAE6"
-    tools:context=".ReportForm">
+    tools:context=".CleanForm">
 
+    <!-- Title -->
     <TextView
         android:id="@+id/title_form"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Report Form"
-        android:textColor="#FF0808"
+        android:text="Clean Form"
+        android:textColor="#FF9800"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Name Section -->
     <TextView
         android:id="@+id/name_option"
         android:layout_width="wrap_content"
@@ -45,6 +47,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/name_option" />
 
+    <!-- Description Section -->
     <TextView
         android:id="@+id/description_required"
         android:layout_width="wrap_content"
@@ -69,52 +72,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/description_required" />
 
-    <TextView
-        android:id="@+id/location_required"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Location (Required)"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.088"
-        app:layout_constraintTop_toBottomOf="@+id/enter_description"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteX="26dp"
-        tools:layout_editor_absoluteY="331dp" />
+    <!-- Address Section -->
 
-
-
-    >/>
-
-
-    <EditText
-        android:id="@+id/enter_location"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginTop="20dp"
-        android:hint="Tap Get Location"
-        android:inputType="none"
-        android:focusable="false"
-        android:cursorVisible="false"
-        android:longClickable="false"
-        android:clickable="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/location_required" />
-
-    <Button
-        android:id="@+id/location_button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="16dp"
-        android:text="Get Location"
-        android:background="@drawable/bg_search"
-        android:textColor="#090909"
-        app:layout_constraintStart_toEndOf="@id/enter_location"
-        app:layout_constraintTop_toBottomOf="@+id/location_required" />
+    <!-- Picture Section -->
 
     <TextView
         android:id="@+id/picture_option"
@@ -126,7 +86,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.08"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/location_button" />
+        app:layout_constraintTop_toBottomOf="@id/enter_description" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -138,9 +98,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/picture_option">
 
-        <!-- Change picture placeholder to ImageView -->
         <ImageView
-            android:id="@+id/picture_placeholder"
+            android:id="@+id/picture_placeholder1"
             android:layout_width="0dp"
             android:layout_height="150dp"
             android:layout_marginEnd="8dp"
@@ -161,22 +120,23 @@
                 android:layout_marginTop="8dp"
                 android:text="Delete"
                 android:background="@drawable/bg_search"
-                android:textColor="#090909"/>
+                android:textColor="#100F0F"/>
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="20dp" />
 
             <Button
-                android:id="@+id/photo_button"
+                android:id="@+id/photo_button1"
                 android:layout_width="130dp"
                 android:layout_height="wrap_content"
                 android:text="Take Photo"
                 android:background="@drawable/bg_search"
-                android:textColor="#090909"/>
+                android:textColor="#100F0F"/>
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Bottom Buttons -->
     <Button
         android:id="@+id/back_button"
         android:layout_width="0dp"
@@ -185,7 +145,7 @@
         android:layout_marginBottom="16dp"
         android:text="Back"
         android:background="@drawable/bg_search"
-        android:textColor="#090909"
+        android:textColor="#100F0F"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/submit_button"
         app:layout_constraintHorizontal_weight="1"
@@ -199,7 +159,7 @@
         android:layout_marginBottom="16dp"
         android:text="Submit"
         android:background="@drawable/bg_search"
-        android:textColor="#090909"
+        android:textColor="#100F0F"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="1"
