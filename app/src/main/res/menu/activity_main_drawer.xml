@@ -13,8 +13,8 @@
             android:icon="@drawable/baseline_web_24"
             android:title="View Web Page" />
         <item
-            android:id="@+id/settings"
-            android:icon="@drawable/baseline_settings_24"
-            android:title="Settings" />
+            android:id="@+id/Account"
+            android:icon="@drawable/baseline_manage_accounts_24"
+            android:title="Manage Account" />
     </group>
 </menu>

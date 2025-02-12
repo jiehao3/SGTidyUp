@@ -129,6 +129,7 @@ public class cleanactivity extends AppCompatActivity {
             Log.e("CleanActivity", "Report ID missing");
         }
         finish();
+
     }
 
     private void deleteVolley(String id) {
@@ -141,7 +142,7 @@ public class cleanactivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         Toast.makeText(getApplicationContext(), "Response status : " + volleyResponseStatus, Toast.LENGTH_LONG).show();
-                        finish();
+
                     }
                 },
                 new Response.ErrorListener() {

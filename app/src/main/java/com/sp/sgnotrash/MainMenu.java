@@ -3,6 +3,7 @@ package com.sp.sgnotrash;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -110,6 +111,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         mainlayout = findViewById(R.id.mainlayout);
         statuscheck = findViewById(R.id.statuscheck);
 
+
         menubutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -128,9 +130,30 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                 } else if (id == R.id.webpage) {
                     Intent intent = new Intent(MainMenu.this, WebPageActivity.class);
                     startActivity(intent);
-                } else if (id == R.id.settings) {
-                    Intent intent = new Intent(MainMenu.this, SettingsActivity.class);
-                    startActivity(intent);
+                }else if (id == R.id.Account) {
+                        if (!isSignedIn()) {
+                            // User not signed in—open the SignInActivity.
+                            Intent intent = new Intent(MainMenu.this, SignInActivity.class);
+                            startActivity(intent);
+                        } else {
+                            // User is signed in—ask if they want to log out.
+                            new AlertDialog.Builder(MainMenu.this)
+                                    .setTitle("Logout")
+                                    .setMessage("Do you want to logout?")
+                                    .setPositiveButton("Yes", (dialog, which) -> {
+                                        // Clear the sign-in state.
+                                        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = prefs.edit();
+                                        editor.putBoolean("isSignedIn", false);
+                                        editor.remove("userName"); // remove additional user info if needed
+                                        editor.apply();
+                                        updateNavHeader(); // update the header UI to show default info
+                                        Toast.makeText(MainMenu.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
+                        }
+
                 }
 
                 // Close the drawer after handling the click
@@ -331,7 +354,10 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             }
         }
     }
-
+    private boolean isSignedIn() {
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        return prefs.getBoolean("isSignedIn", false);
+    }
     private void openBottomSheet() {
 
         View bottomSheetView = LayoutInflater.from(this).inflate(R.layout.bottomsheetlayout, null);
@@ -552,5 +578,26 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         };
         queue.add(jsonObjectRequest);
     }
+    private void updateNavHeader() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+        TextView navHeaderTitle = headerView.findViewById(R.id.username); // your TextView with id nav_header_title
+        ImageView navHeaderImage = headerView.findViewById(R.id.pfp);
+        TextView navStatCounter = headerView.findViewById(R.id.statcounter);
+
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        if (prefs.getBoolean("isSignedIn", false)) {
+            String userName = prefs.getString("userName", "User");
+            navHeaderTitle.setText("Welcome, " + userName);
+            // Optionally load a user-specific profile image.
+            navHeaderImage.setImageResource(R.drawable.img_12); // use a custom drawable for signed in users
+            navStatCounter.setText("Signed in");
+        } else {
+            navHeaderTitle.setText(getString(R.string.nav_header_title)); // default header text, e.g., "Sign In to See Stats"
+            navHeaderImage.setImageResource(R.drawable.img_6); // default image
+            navStatCounter.setText("Sign In to See Stats");
+        }
+    }
+
 
 }

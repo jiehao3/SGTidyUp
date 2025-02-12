@@ -159,7 +159,7 @@ public class ReportForm extends AppCompatActivity {
         if (id == null) {
             insertVolley(String.valueOf(ReportVolleyHelper.lastID + 1), nameStr, descriptionStr, lat, lon, imageBase64);
         } else {
-            //updateVolley(restaurantID, nameStr, addrStr, telStr, restType, String.valueOf(latitude), String.valueOf(longitude));
+            System.out.print("Error");
         }
         finish();
     }

@@ -25,7 +25,6 @@ public class RequestActivity extends AppCompatActivity {
         // Initialize UI elements
         ImageButton backButton = findViewById(R.id.backButton);
         Button btnAdd = findViewById(R.id.btnAdd);
-        Button btnRemove = findViewById(R.id.btnRemove);
         recyclerView = findViewById(R.id.recyclerView);
 
 
@@ -37,7 +36,6 @@ public class RequestActivity extends AppCompatActivity {
         btnAdd.setOnClickListener(v -> addRequest());
 
         // Clean button functionality
-        btnRemove.setOnClickListener(v -> removeReports());
     }
 
     private void addRequest() {

@@ -64,20 +64,10 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_search"
-                android:text="Add"
+                android:text="Request"
                 android:textColor="#0B0A0A"
                 app:iconTint="#101010" />
 
-
-            <Button
-                android:id="@+id/btnRemove"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_search"
-                android:text="Remove"
-                android:textColor="#0C0C0C" />
 
         </LinearLayout>
 

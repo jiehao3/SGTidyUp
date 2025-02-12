@@ -40,6 +40,13 @@
 
             </ImageView>
 
+            <ImageButton
+                android:id="@+id/refreshButton"
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:layout_weight="1"
+                android:src="@drawable/baseline_refresh_24" />
+
         </LinearLayout>
 
         <!-- List -->

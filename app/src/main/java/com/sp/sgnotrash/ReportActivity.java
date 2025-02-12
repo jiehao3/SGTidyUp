@@ -81,7 +81,7 @@ public class ReportActivity extends AppCompatActivity {
     private ReportAdapter adapter;
     private RequestQueue queue;
 
-    private ImageButton ImageButton;
+    private ImageButton refreshButton;
     private RequestQueue requestQueue;
 
     private int volleyResponseStatus;
@@ -92,6 +92,7 @@ public class ReportActivity extends AppCompatActivity {
         setContentView(R.layout.activity_report);
 
         // Initialize UI elements
+        refreshButton = findViewById(R.id.refreshButton);
         ImageButton backButton = findViewById(R.id.backButton);
         Button btnAdd = findViewById(R.id.btnAdd1);
         reportrecyclerView = findViewById(R.id.recyclerView);
@@ -113,6 +114,8 @@ public class ReportActivity extends AppCompatActivity {
 
         // Add button functionality
         btnAdd.setOnClickListener(v -> addReport());
+
+        refreshButton.setOnClickListener(v -> getAllVolley());
 
         // Clean button functionality
         //btnClean.setOnClickListener(v -> clearReports());

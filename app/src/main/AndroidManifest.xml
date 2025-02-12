@@ -18,6 +18,12 @@
         android:theme="@style/Theme.SGNOTrash.NoActionBar"
         tools:targetApi="31">
         <activity
+            android:name=".SignInActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
+        <activity
             android:name=".cleanactivity"
             android:exported="false" />
         <activity
