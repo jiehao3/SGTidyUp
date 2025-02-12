@@ -21,6 +21,16 @@ import java.util.List;
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
     private List<Report> reports;
 
+    private OnReportClickListener listener;
+    public interface OnReportClickListener {
+        void onReportClick(Report report);
+    }
+    public ReportAdapter(List<Report> reports, OnReportClickListener listener) {
+        this.reports = reports;
+        this.listener = listener;
+    }
+
+
     public ReportAdapter(List<Report> reports) {
         this.reports = reports;
     }
@@ -36,12 +46,17 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
         Report report = reports.get(position);
         holder.tvDescription.setText(report.getDescription());
-        holder.tvLocation.setText(report.getLocation());
+        holder.tvUser.setText(report.getName());
 
         // Convert Base64 to Bitmap
         byte[] decodedString = Base64.decode(report.getImage(), Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         holder.ivReportImage.setImageBitmap(decodedByte);
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onReportClick(report);
+            }
+        });
     }
 
     @Override
@@ -51,13 +66,13 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     public static class ReportViewHolder extends RecyclerView.ViewHolder {
         ImageView ivReportImage;
-        TextView tvDescription, tvLocation;
+        TextView tvDescription, tvUser;
 
         public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
             ivReportImage = itemView.findViewById(R.id.ivReportImage);
             tvDescription = itemView.findViewById(R.id.tvDescription);
-            tvLocation = itemView.findViewById(R.id.tvLocation);
+            tvUser = itemView.findViewById(R.id.tvUser);
         }
     }
 }

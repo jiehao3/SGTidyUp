@@ -60,6 +60,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -91,15 +94,19 @@ public class ReportActivity extends AppCompatActivity {
         // Initialize UI elements
         ImageButton backButton = findViewById(R.id.backButton);
         Button btnAdd = findViewById(R.id.btnAdd1);
-        Button btnClean = findViewById(R.id.btnClean);
         reportrecyclerView = findViewById(R.id.recyclerView);
         reportrecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ReportAdapter(reportList);
+        adapter = new ReportAdapter(reportList, report -> {
+            Intent intent = new Intent(ReportActivity.this, cleanactivity.class);
+            intent.putExtra("image", report.getImage());
+            intent.putExtra("name", report.getName());
+            intent.putExtra("description", report.getDescription());
+            intent.putExtra("ID", report.getReport_id());
+            startActivity(intent);
+        });
         reportrecyclerView.setAdapter(adapter);
         requestQueue = Volley.newRequestQueue(this);
-
         // Fetch reports from Astra DB
-
 
         // Back button functionality
         backButton.setOnClickListener(v -> finish()); // Goes back to the previous activity
@@ -108,7 +115,7 @@ public class ReportActivity extends AppCompatActivity {
         btnAdd.setOnClickListener(v -> addReport());
 
         // Clean button functionality
-        btnClean.setOnClickListener(v -> clearReports());
+        //btnClean.setOnClickListener(v -> clearReports());
     }
 
     private void addReport() {
@@ -119,46 +126,59 @@ public class ReportActivity extends AppCompatActivity {
     private void clearReports() {
 
     }
-}
-    /*
+
+
     @Override
     protected void onResume() {
         getAllVolley();
         super.onResume();
     }
-    /*
+
+
     private void getAllVolley() {
+        reportList.clear();
         queue = Volley.newRequestQueue(this);
-        String url = ReportVolleyHelper.url + "rows"; //Query all records
+        String url = ReportVolleyHelper.url + "rows"; // Query all records
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        if (volleyResponseStatus == 200) { // Read successfully from database
+                        // Check if the response was successful
+                        if (volleyResponseStatus == 200) {
                             try {
-                                int count = response.getInt("count"); //Number of records from database
-                                adapter.clear(); //reset adapter
-                                if (count > 0) { //Has more than 1 record
-                                    empty.setVisibility(View.INVISIBLE);
-                                    JSONArray data = response.getJSONArray("data");//Get all the records as JSON array
-                                    for (int i = 0; i <= count; i++) { // Loop through all records
-                                        Report r = new Report();
-                                        // Store the lastest id in lastID
-                                        if (Report.lastID < data.getJSONObject(i).getInt("id")) {
-                                            Report.lastID = data.getJSONObject(i).getInt("id");
+                                int count = response.getInt("count");
+                                // Clear the existing list if refreshing data
+                                reportList.clear();
+
+                                if (count > 0) {
+                                    JSONArray data = response.getJSONArray("data");
+                                    // Use data.length() or count, but note that indexes go from 0 to count-1.
+                                    for (int i = 0; i < data.length(); i++) {
+                                        JSONObject item = data.getJSONObject(i);
+                                        Report report = new Report();
+
+                                        // Update the lastID if necessary
+                                        int id = item.getInt("id");
+                                        if (ReportVolleyHelper.lastID < id) {
+                                            ReportVolleyHelper.lastID = id;
                                         }
-                                        // For each json record
-                                        r.setId(data.getJSONObject(i).getString("id")); //read the id
-                                        r.setName(data.getJSONObject(i).getString("restaurantname")); //extract the restaurantname
-                                        r.setAddress(data.getJSONObject(i).getString("restaurantaddress")); //extract the restaurantaddress
-                                        r.setTelephone(data.getJSONObject(i).getString("restauranttel")); //extract the restauranttel
-                                        r.setRestaurantType(data.getJSONObject(i).getString("restauranttype")); //extract the restauranttype
-                                        r.setLat(data.getJSONObject(i).getString("lat")); //extract the lat
-                                        r.setLon(data.getJSONObject(i).getString("lon")); //extract the lon
-                                        adapter.add(r); // add the record to the adapter
+
+                                        // Set properties for the report
+                                        report.setReport_id(item.getString("id"));
+                                        report.setName(item.getString("name"));
+                                        report.setDescription(item.getString("description"));
+                                        report.setLat(item.getString("lat"));
+                                        report.setLon(item.getString("lon"));
+                                        report.setImage(item.getString("image"));
+
+
+                                        // Add the report to the list
+                                        reportList.add(report);
                                     }
+                                    // Notify the adapter that the data has changed
+                                    adapter.notifyDataSetChanged();
                                 } else {
-                                    empty.setVisibility(View.VISIBLE);
+                                    // Optionally handle the case when there are no records
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -169,13 +189,12 @@ public class ReportActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // TODO: Handle error
                         Log.e("OnErrorResponse", error.toString());
                     }
                 }) {
             @Override
             public Map<String, String> getHeaders() {
-                return ReportVolleyHelper.getHeader();
+                return ReportVolleyHelper.getHeaders();
             }
 
             @Override
@@ -184,14 +203,13 @@ public class ReportActivity extends AppCompatActivity {
                 return super.parseNetworkResponse(response);
             }
         };
-        // add JsonObjectRequest to the RequestQueue
+
+        // Add the request to the queue
         queue.add(jsonObjectRequest);
     }
 }
 
 
-//"mongodb+srv://admin:9Xy1NSBQhDMDexDg@cluster0.mrzw2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&ssl=true&dnsClient.disableJndi=true";
 
-     */
 
 

@@ -5,12 +5,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +31,13 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -42,12 +52,19 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     private GoogleMap myMap;
@@ -66,6 +83,9 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     private Runnable refreshRunnable;
 
     private ConstraintLayout mainlayout;
+
+    private RequestQueue queue;
+    private int volleyResponseStatus;
 
     private boolean show = false;
 
@@ -137,8 +157,8 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                     if (addresslist != null && !addresslist.isEmpty()) {
                         Address address = addresslist.get(0);
                         LatLng latlng = new LatLng(address.getLatitude(), address.getLongitude());
-                        Marker marker = myMap.addMarker(new MarkerOptions().position(latlng).title(location));
-                        markers.add(marker);
+                        //Marker marker = myMap.addMarker(new MarkerOptions().position(latlng).title(location));
+                        //markers.add(marker);
                         myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng, 16));
                     } else {
                         Toast.makeText(MainMenu.this, "Location not found", Toast.LENGTH_SHORT).show();
@@ -183,6 +203,47 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
 
+
+        // Set custom InfoWindowAdapter
+        myMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                return null; // Use default window frame
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                // Inflate the custom layout for the info window
+                View view = getLayoutInflater().inflate(R.layout.reportmarker, null);
+
+                // Get the report object from the marker's tag
+                Report report = (Report) marker.getTag();
+
+                // Populate the info window with data
+                TextView title = view.findViewById(R.id.title);
+                ImageView imageView = view.findViewById(R.id.image);
+
+                title.setText(marker.getTitle());
+
+                // Load the image into the ImageView
+                if (report != null && report.getImage() != null && !report.getImage().isEmpty()) {
+                    byte[] decodedString = Base64.decode(report.getImage(), Base64.DEFAULT);
+                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    imageView.setImageBitmap(decodedByte);
+                } else {
+                    imageView.setImageDrawable(null); // Default image
+                }
+
+                return view;
+            }
+        });
+
+        // Handle marker click events
+        myMap.setOnMarkerClickListener(marker -> {
+            marker.showInfoWindow(); // Show the info window when the marker is clicked
+            return true;
+        });
+
         // Enable My Location layer if permission granted
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             myMap.setMyLocationEnabled(true);
@@ -192,11 +253,8 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             if (gpsTracker.canGetlocation()) {
                 double latitude = gpsTracker.getLatitude();
                 double longitude = gpsTracker.getLongitude();
-
                 if (latitude != 0.0 && longitude != 0.0) {
                     LatLng myLocation = new LatLng(latitude, longitude);
-                    Marker marker = myMap.addMarker(new MarkerOptions().position(myLocation).title("Your Current Location"));
-                    markers.add(marker); // Add marker to the list
                     myMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16));
                 } else {
                     Toast.makeText(this, "Unable to get location, try again.", Toast.LENGTH_SHORT).show();
@@ -204,17 +262,22 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             } else {
                 Toast.makeText(this, "Please enable GPS to get location.", Toast.LENGTH_SHORT).show();
             }
-        }
 
-        // Start the handler to refresh the page every 5 seconds
+        }
         startRefreshing();
     }
 
+        // Start refreshing markers periodically
+
+
+
     private void startRefreshing() {
         handler = new Handler();
+
         refreshRunnable = new Runnable() {
             @Override
             public void run() {
+                getReportMarkers();
                 if (myMap != null) {
                     LatLngBounds visibleBounds = myMap.getProjection().getVisibleRegion().latLngBounds;
                     int markerCount = 0;
@@ -332,10 +395,12 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         builder.show();
     }
     private static class GeoJSON {
+        public String type;
         List<Feature> features;
     }
 
     private static class Feature {
+        public String type;
         Geometry geometry;
         Properties properties;
     }
@@ -346,8 +411,8 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     }
 
     private static class Properties {
-        String NAME;
-        String DESCRIPTION;
+        String Name;
+        String Description;
         String Address;
         String TYPE_LEVEL_;
         String TYPE_LEVEL1;
@@ -364,11 +429,12 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         for (Feature feature : recyclingFeatures) {
             if (feature.geometry != null && feature.geometry.coordinates != null && feature.geometry.coordinates.size() >= 2) {
                 LatLng location = new LatLng(feature.geometry.coordinates.get(1), feature.geometry.coordinates.get(0));
-
+                String description = feature.properties.Description;
+                String result = parseHtmlUsingRegex(description);
 
                 Marker marker = myMap.addMarker(new MarkerOptions()
                         .position(location)
-                        .title("Recycling Bin")
+                        .title(result)
                         .snippet("Deposit papers, plastics, glass and metals")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.img_9)));
 
@@ -405,6 +471,86 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         inputStream.read(buffer);
         inputStream.close();
         return new String(buffer, StandardCharsets.UTF_8);
+    }
+    public String parseHtmlUsingRegex(String html) {
+        // Define regex patterns for each key (ignoring case and extra whitespace)
+        Pattern patternBlockHouse = Pattern.compile(
+                "<th[^>]*>\\s*ADDRESSBLOCKHOUSENUMBER\\s*</th>\\s*<td[^>]*>\\s*([^<]+)\\s*</td>",
+                Pattern.CASE_INSENSITIVE);
+        Pattern patternPostalCode = Pattern.compile(
+                "<th[^>]*>\\s*ADDRESSPOSTALCODE\\s*</th>\\s*<td[^>]*>\\s*([^<]+)\\s*</td>",
+                Pattern.CASE_INSENSITIVE);
+        Pattern patternStreetName = Pattern.compile(
+                "<th[^>]*>\\s*ADDRESSSTREETNAME\\s*</th>\\s*<td[^>]*>\\s*([^<]+)\\s*</td>",
+                Pattern.CASE_INSENSITIVE);
+
+        Matcher matcherBlockHouse = patternBlockHouse.matcher(html);
+        Matcher matcherPostalCode = patternPostalCode.matcher(html);
+        Matcher matcherStreetName = patternStreetName.matcher(html);
+
+        String addressBlockHouseNumber = matcherBlockHouse.find() ? matcherBlockHouse.group(1).trim() : "";
+        String addressPostalCode = matcherPostalCode.find() ? matcherPostalCode.group(1).trim() : "";
+        String addressStreetName = matcherStreetName.find() ? matcherStreetName.group(1).trim() : "";
+
+        String result = addressBlockHouseNumber + ", " + addressStreetName + ", " + addressPostalCode;
+        return result;
+        // For Android, you might use Toast or update a UI element.
+    }
+    private void getReportMarkers() {
+        // Clear existing markers
+        for (Marker marker : markers) {
+            marker.remove();
+        }
+        markers.clear();
+
+        queue = Volley.newRequestQueue(this);
+        String url = ReportVolleyHelper.url + "rows"; // Query all records
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        int count = response.getInt("count");
+                        if (count > 0) {
+                            JSONArray data = response.getJSONArray("data");
+                            for (int i = 0; i < data.length(); i++) {
+                                JSONObject item = data.getJSONObject(i);
+                                Report report = new Report();
+                                report.setReport_id(item.getString("id"));
+                                report.setName(item.getString("name"));
+                                report.setDescription(item.getString("description"));
+                                report.setLat(item.getString("lat"));
+                                report.setLon(item.getString("lon"));
+                                report.setImage(item.getString("image"));
+
+                                Double reportLat = item.getDouble("lat");
+                                Double reportLon = item.getDouble("lon");
+                                LatLng reportLocation = new LatLng(reportLat, reportLon);
+
+                                Marker marker = myMap.addMarker(new MarkerOptions()
+                                        .position(reportLocation)
+                                        .title(report.getName())
+                                        .snippet(report.getDescription())
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.reportmarker)));
+                                marker.setTag(report); // Attach the report object to the marker
+                                markers.add(marker);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Log.e("OnErrorResponse", error.toString())) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return ReportVolleyHelper.getHeaders();
+            }
+
+            @Override
+            protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+                volleyResponseStatus = response.statusCode;
+                return super.parseNetworkResponse(response);
+            }
+        };
+        queue.add(jsonObjectRequest);
     }
 
 }
