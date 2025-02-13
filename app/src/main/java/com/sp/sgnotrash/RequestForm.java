@@ -57,8 +57,6 @@ public class RequestForm extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_request_form);
-
-        // Initialize views (ensure your layout uses matching IDs)
         imgPreview = findViewById(R.id.picture_placeholder1);
         edtName = findViewById(R.id.requestname);
         edtDescription = findViewById(R.id.requestdescription1);
@@ -68,23 +66,20 @@ public class RequestForm extends AppCompatActivity {
     }
 
     private void setupButtons() {
-        // Photo capture button
+
         findViewById(R.id.photo_button).setOnClickListener(v -> {
             if (checkCameraPermission()) {
                 openCamera();
             }
         });
 
-        // Delete photo button
         findViewById(R.id.delete_button).setOnClickListener(v -> {
             currentImage = null;
             imgPreview.setImageResource(android.R.color.transparent);
         });
 
-        // Back button
         findViewById(R.id.back_button).setOnClickListener(v -> finish());
 
-        // Submit button – send an email via JavaMail API with an attachment
         findViewById(R.id.submit_button).setOnClickListener(v -> validateAndSubmit());
     }
 
@@ -125,18 +120,20 @@ public class RequestForm extends AppCompatActivity {
             return;
         }
 
-        // Compress the captured image and retrieve its byte array
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         currentImage.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         byte[] imageBytes = stream.toByteArray();
 
-        // Build email subject and text body (without embedding the image data)
-        String subject = "Disposal Request: " + nameStr;
-        String body = "Name: " + nameStr + "\n" +
-                "Description: " + descriptionStr + "\n" +
-                "Location: " + locationStr + "\n";
+        String subject = "Disposal Request by ";
+        String body = "I hope this email finds you well. I would like to request the disposal of an item with the following details:\n\n" +
+                            "Name: " + nameStr + "\n" +
+                            "Description: " + descriptionStr + "\n" +
+                            "Location: " + locationStr + "\n\n" +
+                        "I have also attached an image for reference. Please let me know if any further details are required.\n\n" +
+                        "Thank you for your assistance.\n\n" +
+                    "Best regards,\n" +
+                     nameStr;
 
-        // Send the email with the image as an attachment
         sendEmail(subject, body, imageBytes);
     }
 
@@ -144,7 +141,6 @@ public class RequestForm extends AppCompatActivity {
         new SendEmailTask().execute(subject, body, attachment);
     }
 
-    // AsyncTask to send email off the UI thread
     private class SendEmailTask extends AsyncTask<Object, Void, Boolean> {
 
         @Override
@@ -152,11 +148,8 @@ public class RequestForm extends AppCompatActivity {
             String subject = (String) params[0];
             String body = (String) params[1];
             byte[] attachment = (byte[]) params[2];
-
-            // Use your sender email and an App Password if needed
             MailSender sender = new MailSender("jiehaolek1@gmail.com", "hbun ovvt qhrr jaqs");
             try {
-                // Replace with the intended recipient's address
                 sender.sendEmailWithAttachment("jiehao.23@ichat.sp.edu.sg", subject, body, attachment, "image.jpg");
                 return true;
             } catch (Exception e) {
@@ -164,7 +157,6 @@ public class RequestForm extends AppCompatActivity {
                 return false;
             }
         }
-
         @Override
         protected void onPostExecute(Boolean success) {
             if (success) {

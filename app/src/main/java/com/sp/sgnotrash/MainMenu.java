@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +42,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -110,6 +112,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         areaStatusText = findViewById(R.id.AreaStatus);
         mainlayout = findViewById(R.id.mainlayout);
         statuscheck = findViewById(R.id.statuscheck);
+        updateNavHeader();
 
 
         menubutton.setOnClickListener(new View.OnClickListener() {
@@ -124,7 +127,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
 
-                // Handle item clicks
+
                 if (id == R.id.contactsupport) {
                     showSupportOptions();
                 } else if (id == R.id.webpage) {
@@ -132,37 +135,38 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                     startActivity(intent);
                 }else if (id == R.id.Account) {
                         if (!isSignedIn()) {
-                            // User not signed in—open the SignInActivity.
+
                             Intent intent = new Intent(MainMenu.this, SignInActivity.class);
                             startActivity(intent);
                         } else {
-                            // User is signed in—ask if they want to log out.
-                            new AlertDialog.Builder(MainMenu.this)
+
+                            AlertDialog dialog = new MaterialAlertDialogBuilder(MainMenu.this)
                                     .setTitle("Logout")
                                     .setMessage("Do you want to logout?")
-                                    .setPositiveButton("Yes", (dialog, which) -> {
-                                        // Clear the sign-in state.
+                                    .setPositiveButton("Yes", (dialogInterface, which) -> {
+
                                         SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
                                         SharedPreferences.Editor editor = prefs.edit();
                                         editor.putBoolean("isSignedIn", false);
                                         editor.remove("userName"); // remove additional user info if needed
                                         editor.apply();
-                                        updateNavHeader(); // update the header UI to show default info
+                                        updateNavHeader();
                                         Toast.makeText(MainMenu.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
                                     })
                                     .setNegativeButton("No", null)
                                     .show();
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                                    .setTextColor(ContextCompat.getColor(MainMenu.this, R.color.black));
+                            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                                    .setTextColor(ContextCompat.getColor(MainMenu.this, R.color.black));
                         }
 
                 }
 
-                // Close the drawer after handling the click
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
         });
-
-
 
 
         searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -204,7 +208,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             initMap();
         }
 
-        // Floating Action Button to trigger BottomSheet
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -226,52 +229,55 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
 
-
-        // Set custom InfoWindowAdapter
         myMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
             @Override
             public View getInfoWindow(Marker marker) {
-                return null; // Use default window frame
+                return null;
             }
+
 
             @Override
             public View getInfoContents(Marker marker) {
-                // Inflate the custom layout for the info window
                 View view = getLayoutInflater().inflate(R.layout.reportmarker, null);
-
-                // Get the report object from the marker's tag
-                Report report = (Report) marker.getTag();
-
-                // Populate the info window with data
                 TextView title = view.findViewById(R.id.title);
-                ImageView imageView = view.findViewById(R.id.image);
+                TextView snippet = view.findViewById(R.id.snippet);
+                ImageView image = view.findViewById(R.id.image);
+
+                Report report = (Report) marker.getTag();
 
                 title.setText(marker.getTitle());
 
-                // Load the image into the ImageView
-                if (report != null && report.getImage() != null && !report.getImage().isEmpty()) {
-                    byte[] decodedString = Base64.decode(report.getImage(), Base64.DEFAULT);
-                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                    imageView.setImageBitmap(decodedByte);
+                if (report != null) {
+
+                    snippet.setVisibility(View.GONE);
+                    image.setVisibility(View.VISIBLE);
+                    if (report != null && report.getImage() != null && !report.getImage().isEmpty()) {
+                        byte[] decodedString = Base64.decode(report.getImage(), Base64.DEFAULT);
+                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        image.setImageBitmap(decodedByte);
+                    } else {
+                        image.setImageDrawable(null);
+                    }
                 } else {
-                    imageView.setImageDrawable(null); // Default image
+
+                    snippet.setVisibility(View.VISIBLE);
+                    image.setVisibility(View.GONE);
+                    snippet.setText(marker.getSnippet());
                 }
 
                 return view;
             }
         });
 
-        // Handle marker click events
         myMap.setOnMarkerClickListener(marker -> {
-            marker.showInfoWindow(); // Show the info window when the marker is clicked
+            marker.showInfoWindow();
             return true;
         });
 
-        // Enable My Location layer if permission granted
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             myMap.setMyLocationEnabled(true);
+            checkGPSAndLocationServices();
 
-            // Get the current location using GPSTracker
             gpsTracker = new GPSTracker(MainMenu.this);
             if (gpsTracker.canGetlocation()) {
                 double latitude = gpsTracker.getLatitude();
@@ -290,49 +296,22 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         startRefreshing();
     }
 
-        // Start refreshing markers periodically
-
-
-
     private void startRefreshing() {
         handler = new Handler();
-
         refreshRunnable = new Runnable() {
             @Override
             public void run() {
-                getReportMarkers();
-                if (myMap != null) {
-                    LatLngBounds visibleBounds = myMap.getProjection().getVisibleRegion().latLngBounds;
-                    int markerCount = 0;
-                    for (Marker marker : markers) {
-                        if (visibleBounds.contains(marker.getPosition())) {
-                            markerCount++;
-                        }
-                    }
-
-                    // Update the UI based on the number of markers
-                    if (markerCount >= 0 && markerCount <= 1) {
-                        areaStatusText.setText("Area Status: Clean");
-                        mainlayout.setBackgroundColor(Color.parseColor("#DDE4D9"));
-                        statuscheck.setImageResource(R.drawable.img_4);
-                    } else if (markerCount >= 2 && markerCount <= 5) {
-                        areaStatusText.setText("Area Status: Slightly Dirty");
-                        mainlayout.setBackgroundColor(Color.parseColor("#EDF795"));
-                        statuscheck.setImageResource(R.drawable.img_5);
-                    } else {
-                        areaStatusText.setText("Area Status: Very Dirty");
-                        mainlayout.setBackgroundColor(Color.parseColor("#9E4242"));
-                        statuscheck.setImageResource(R.drawable.img_3);
-                    }
-                }
+                getReportMarkers(); // This will trigger updateAreaStatus() upon completion
                 handler.postDelayed(this, 5000);
             }
         };
         handler.post(refreshRunnable);
-
+    }
+    @Override
+    protected void onResume(){
+        super.onResume();
 
     }
-
 
 
     @Override
@@ -353,6 +332,28 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                 Toast.makeText(this, "Permission denied. Cannot access location.", Toast.LENGTH_LONG).show();
             }
         }
+    }
+    private void checkGPSAndLocationServices() {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean isGPSEnabled = locationManager != null && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isNetworkEnabled = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!isGPSEnabled && !isNetworkEnabled) {
+            // Prompt the user to enable GPS or location services
+            showLocationSettingsDialog();
+        }
+    }
+
+    private void showLocationSettingsDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Enable Location")
+                .setMessage("Please enable GPS or location services to use this feature.")
+                .setPositiveButton("Settings", (dialog, which) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
     private boolean isSignedIn() {
         SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
@@ -520,7 +521,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
 
         String result = addressBlockHouseNumber + ", " + addressStreetName + ", " + addressPostalCode;
         return result;
-        // For Android, you might use Toast or update a UI element.
     }
     private void getReportMarkers() {
         // Clear existing markers
@@ -553,13 +553,14 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
 
                                 Marker marker = myMap.addMarker(new MarkerOptions()
                                         .position(reportLocation)
-                                        .title(report.getName())
+                                        .title("Report By:" + report.getName())
                                         .snippet(report.getDescription())
                                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.reportmarker)));
                                 marker.setTag(report); // Attach the report object to the marker
                                 markers.add(marker);
                             }
                         }
+                        updateAreaStatus();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -578,23 +579,50 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         };
         queue.add(jsonObjectRequest);
     }
+    private void updateAreaStatus() {
+        if (myMap != null) {
+            LatLngBounds visibleBounds = myMap.getProjection().getVisibleRegion().latLngBounds;
+            int markerCount = 0;
+            for (Marker marker : markers) {
+                if (visibleBounds.contains(marker.getPosition())) {
+                    markerCount++;
+                }
+            }
+
+
+            if (markerCount <= 1) {
+                areaStatusText.setText("Area Status: Clean");
+                mainlayout.setBackgroundColor(Color.parseColor("#DDE4D9"));
+                statuscheck.setImageResource(R.drawable.img_4);
+            } else if (markerCount <= 5) {
+                areaStatusText.setText("Area Status: Slightly Dirty");
+                mainlayout.setBackgroundColor(Color.parseColor("#EDF795"));
+                statuscheck.setImageResource(R.drawable.img_5);
+            } else {
+                areaStatusText.setText("Area Status: Very Dirty");
+                mainlayout.setBackgroundColor(Color.parseColor("#9E4242"));
+                statuscheck.setImageResource(R.drawable.img_3);
+            }
+        }
+    }
     private void updateNavHeader() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-        TextView navHeaderTitle = headerView.findViewById(R.id.username); // your TextView with id nav_header_title
+        TextView navHeaderTitle = headerView.findViewById(R.id.username);
         ImageView navHeaderImage = headerView.findViewById(R.id.pfp);
         TextView navStatCounter = headerView.findViewById(R.id.statcounter);
 
         SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
         if (prefs.getBoolean("isSignedIn", false)) {
-            String userName = prefs.getString("userName", "User");
+            String userName = prefs.getString("username", "User");
+            int points = prefs.getInt("points", 0);
             navHeaderTitle.setText("Welcome, " + userName);
-            // Optionally load a user-specific profile image.
-            navHeaderImage.setImageResource(R.drawable.img_12); // use a custom drawable for signed in users
-            navStatCounter.setText("Signed in");
-        } else {
-            navHeaderTitle.setText(getString(R.string.nav_header_title)); // default header text, e.g., "Sign In to See Stats"
-            navHeaderImage.setImageResource(R.drawable.img_6); // default image
+            navStatCounter.setText("Points: " + points);
+            navHeaderImage.setImageResource(R.drawable.img_12);
+        }
+        else {
+            navHeaderTitle.setText("Guest");
+            navHeaderImage.setImageResource(R.drawable.img_6);
             navStatCounter.setText("Sign In to See Stats");
         }
     }

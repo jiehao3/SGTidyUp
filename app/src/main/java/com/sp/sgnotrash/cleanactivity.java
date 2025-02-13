@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,6 +30,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -125,9 +128,12 @@ public class cleanactivity extends AppCompatActivity {
 
         if (reportId != null && !reportId.isEmpty()) {
             deleteVolley(reportId);
+            awardPointsToUser();
         } else {
             Log.e("CleanActivity", "Report ID missing");
         }
+        //Intent intent = new Intent (this, ReportActivity.class);
+        //startActivity(intent);
         finish();
 
     }
@@ -142,7 +148,9 @@ public class cleanactivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         Toast.makeText(getApplicationContext(), "Response status : " + volleyResponseStatus, Toast.LENGTH_LONG).show();
-
+                        Intent intent = new Intent(cleanactivity.this, ReportActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        startActivity(intent);
                     }
                 },
                 new Response.ErrorListener() {
@@ -176,6 +184,56 @@ public class cleanactivity extends AppCompatActivity {
         }
         return true;
     }
+    private void awardPointsToUser() {
+        SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
+        String username = prefs.getString("username", "Hello");
+        String password = prefs.getString("password", "123");
+
+        // Step 1: Fetch the user's document ID using their username
+        String queryUrl = ReportVolleyHelper.loginurl +"?where={\"username\": {\"$eq\":[\"" + username + "\"]}, " +
+                "\"password\": {\"$eq\":[\"" + password + "\"]}}";
+        JsonObjectRequest queryRequest = new JsonObjectRequest(
+                Request.Method.GET, queryUrl, null,
+                response -> {
+                    try {
+                        JSONArray data = response.getJSONArray("data");
+                        if (data.length() > 0) {
+                            JSONObject user = data.getJSONObject(0);
+                            int currentPoints = user.getInt("point");
+                            int newPoints = currentPoints + 1;
+
+                            // Step 2: Update points using the document ID
+                            String updateUrl = ReportVolleyHelper.loginurl + "/" + user;
+                            JSONObject body = new JSONObject();
+                            body.put("point", newPoints);
+
+                            JsonObjectRequest updateRequest = new JsonObjectRequest(
+                                    Request.Method.PATCH, updateUrl, body,
+                                    updateResponse -> {
+                                        // Update local preferences and UI
+                                        prefs.edit().putInt("points", newPoints).apply();
+                                        Toast.makeText(this, "+1 Point!", Toast.LENGTH_SHORT).show();
+                                    },
+                                    error -> Log.e("UpdateError", error.toString())
+                            ) {
+                                @Override
+                                public Map<String, String> getHeaders() {
+                                    return ReportVolleyHelper.getHeaders();
+                                }
+                            };
+
+                            Volley.newRequestQueue(this).add(updateRequest);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Log.e("QueryError", error.toString())
+        );
+
+        Volley.newRequestQueue(this).add(queryRequest);
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

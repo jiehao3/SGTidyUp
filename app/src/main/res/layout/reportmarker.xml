@@ -11,6 +11,13 @@
         android:text="Title"
         android:textSize="16sp"
         android:textStyle="bold" />
+    <!-- Add a TextView for the snippet -->
+    <TextView
+        android:id="@+id/snippet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
     <ImageView
         android:id="@+id/image"
