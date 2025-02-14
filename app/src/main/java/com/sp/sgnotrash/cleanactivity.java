@@ -186,52 +186,10 @@ public class cleanactivity extends AppCompatActivity {
     }
     private void awardPointsToUser() {
         SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
-        String username = prefs.getString("username", "Hello");
-        String password = prefs.getString("password", "123");
-
-        // Step 1: Fetch the user's document ID using their username
-        String queryUrl = ReportVolleyHelper.loginurl +"?where={\"username\": {\"$eq\":[\"" + username + "\"]}, " +
-                "\"password\": {\"$eq\":[\"" + password + "\"]}}";
-        JsonObjectRequest queryRequest = new JsonObjectRequest(
-                Request.Method.GET, queryUrl, null,
-                response -> {
-                    try {
-                        JSONArray data = response.getJSONArray("data");
-                        if (data.length() > 0) {
-                            JSONObject user = data.getJSONObject(0);
-                            int currentPoints = user.getInt("point");
-                            int newPoints = currentPoints + 1;
-
-                            // Step 2: Update points using the document ID
-                            String updateUrl = ReportVolleyHelper.loginurl + "/" + user;
-                            JSONObject body = new JSONObject();
-                            body.put("point", newPoints);
-
-                            JsonObjectRequest updateRequest = new JsonObjectRequest(
-                                    Request.Method.PATCH, updateUrl, body,
-                                    updateResponse -> {
-                                        // Update local preferences and UI
-                                        prefs.edit().putInt("points", newPoints).apply();
-                                        Toast.makeText(this, "+1 Point!", Toast.LENGTH_SHORT).show();
-                                    },
-                                    error -> Log.e("UpdateError", error.toString())
-                            ) {
-                                @Override
-                                public Map<String, String> getHeaders() {
-                                    return ReportVolleyHelper.getHeaders();
-                                }
-                            };
-
-                            Volley.newRequestQueue(this).add(updateRequest);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Log.e("QueryError", error.toString())
-        );
-
-        Volley.newRequestQueue(this).add(queryRequest);
+        int currentPoints = prefs.getInt("points", 0);
+        int newPoints = currentPoints + 1;
+        prefs.edit().putInt("points", newPoints).apply();
+        Toast.makeText(this, "+1 Point!", Toast.LENGTH_SHORT).show();
     }
 
 

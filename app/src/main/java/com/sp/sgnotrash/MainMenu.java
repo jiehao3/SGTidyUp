@@ -115,6 +115,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         updateNavHeader();
 
 
+
         menubutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,6 +123,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
         NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setBackgroundColor(Color.parseColor("#DDE4D9"));
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -168,7 +170,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
 
-
         searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
@@ -200,7 +201,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             }
         });
 
-        // Request location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
@@ -278,39 +278,45 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
             myMap.setMyLocationEnabled(true);
             checkGPSAndLocationServices();
 
-            gpsTracker = new GPSTracker(MainMenu.this);
-            if (gpsTracker.canGetlocation()) {
-                double latitude = gpsTracker.getLatitude();
-                double longitude = gpsTracker.getLongitude();
-                if (latitude != 0.0 && longitude != 0.0) {
+            new GPSTracker(MainMenu.this, new GPSTracker.LocationCallback() {
+                @Override
+                public void onLocationReceived(double latitude, double longitude) {
                     LatLng myLocation = new LatLng(latitude, longitude);
                     myMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 16));
-                } else {
-                    Toast.makeText(this, "Unable to get location, try again.", Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(this, "Please enable GPS to get location.", Toast.LENGTH_SHORT).show();
-            }
 
+                @Override
+                public void onLocationFailed(String errorMessage) {
+                    Toast.makeText(MainMenu.this, errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
         }
         startRefreshing();
-    }
+        }
+
+
 
     private void startRefreshing() {
         handler = new Handler();
         refreshRunnable = new Runnable() {
             @Override
             public void run() {
-                getReportMarkers(); // This will trigger updateAreaStatus() upon completion
+                getReportMarkers();
                 handler.postDelayed(this, 5000);
             }
         };
         handler.post(refreshRunnable);
     }
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-
+        try {
+            updateNavHeader();
+        } catch (Exception e) {
+            // If updateNavHeader() fails, do nothing (or log the error)
+        }
     }
 
 

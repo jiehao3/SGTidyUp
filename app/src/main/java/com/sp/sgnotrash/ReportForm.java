@@ -97,21 +97,26 @@ public class ReportForm extends AppCompatActivity {
             imgPreview.setImageResource(android.R.color.transparent);
         });
 
-        // Back Button
         findViewById(R.id.back_button).setOnClickListener(v -> finish());
         findViewById(R.id.location_button).setOnClickListener(v -> getlocation());
-        // Submit Button
         findViewById(R.id.submit_button).setOnClickListener(v -> validateAndSubmit());
     }
 
     private void getlocation() {
-        myLatitude = GPSTracker.getLatitude();
-        myLongitude = GPSTracker.getLongitude();
-        edtLocation.setText(String.format(Locale.getDefault(), "%.2f, %.2f", myLatitude, myLongitude));
+        new GPSTracker(ReportForm.this, new GPSTracker.LocationCallback() {
+            @Override
+            public void onLocationReceived(double latitude, double longitude) {
+                myLatitude = latitude;
+                myLongitude = longitude;
+                runOnUiThread(() -> edtLocation.setText(String.format(Locale.getDefault(), "%.2f, %.2f", myLatitude, myLongitude)));
+            }
 
-
+            @Override
+            public void onLocationFailed(String errorMessage) {
+                runOnUiThread(() -> Toast.makeText(ReportForm.this, errorMessage, Toast.LENGTH_SHORT).show());
+            }
+        });
     }
-
     private void openCamera() {
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, CAMERA_REQUEST);
@@ -172,11 +177,9 @@ public class ReportForm extends AppCompatActivity {
         params.put("lat", lat);
         params.put("lon", lon);
         params.put("image", imageBase64);
-        JSONObject postdata = new JSONObject(params); // Data as JSON object to be insert into the database
+        JSONObject postdata = new JSONObject(params);
         RequestQueue queue = Volley.newRequestQueue(this);
-        // Rest api link
         String url = ReportVolleyHelper.url;
-        // Use POST REST api call
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, url, postdata,
                 new Response.Listener<JSONObject>() {
                     @Override
