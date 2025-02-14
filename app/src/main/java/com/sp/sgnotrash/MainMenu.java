@@ -150,7 +150,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                                         SharedPreferences prefs = getSharedPreferences("MyAppPrefs", MODE_PRIVATE);
                                         SharedPreferences.Editor editor = prefs.edit();
                                         editor.putBoolean("isSignedIn", false);
-                                        editor.remove("userName"); // remove additional user info if needed
+                                        editor.remove("userName");
                                         editor.apply();
                                         updateNavHeader();
                                         Toast.makeText(MainMenu.this, "Logged out successfully", Toast.LENGTH_SHORT).show();
@@ -315,7 +315,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         try {
             updateNavHeader();
         } catch (Exception e) {
-            // If updateNavHeader() fails, do nothing (or log the error)
         }
     }
 
@@ -345,7 +344,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         boolean isNetworkEnabled = locationManager != null && locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         if (!isGPSEnabled && !isNetworkEnabled) {
-            // Prompt the user to enable GPS or location services
             showLocationSettingsDialog();
         }
     }
@@ -405,26 +403,19 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
     private void showSupportOptions() {
-        // List of support options (names and phone numbers)
+
         String[] supportOptions = {"Local Call", "Overseas Call"};
         String[] phoneNumbers = {"+65 6225 5632", "+65 6225 5632"};
 
-        // Create an AlertDialog to display the options
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("To report suspected scams or verify the identity of the NEA officer");
 
-        // Set the list of options
         builder.setItems(supportOptions, (dialog, which) -> {
-            // Get the selected phone number
             String selectedPhoneNumber = phoneNumbers[which];
-
-            // Launch the phone app with the selected number
             Intent intent = new Intent(Intent.ACTION_DIAL);
             intent.setData(Uri.parse("tel:" + selectedPhoneNumber));
             startActivity(intent);
         });
-
-        // Show the dialog
         builder.show();
     }
     private static class GeoJSON {
@@ -506,7 +497,6 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         return new String(buffer, StandardCharsets.UTF_8);
     }
     public String parseHtmlUsingRegex(String html) {
-        // Define regex patterns for each key (ignoring case and extra whitespace)
         Pattern patternBlockHouse = Pattern.compile(
                 "<th[^>]*>\\s*ADDRESSBLOCKHOUSENUMBER\\s*</th>\\s*<td[^>]*>\\s*([^<]+)\\s*</td>",
                 Pattern.CASE_INSENSITIVE);
@@ -529,14 +519,13 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
         return result;
     }
     private void getReportMarkers() {
-        // Clear existing markers
         for (Marker marker : markers) {
             marker.remove();
         }
         markers.clear();
 
         queue = Volley.newRequestQueue(this);
-        String url = ReportVolleyHelper.url + "rows"; // Query all records
+        String url = ReportVolleyHelper.url + "rows";
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 response -> {
                     try {
@@ -562,7 +551,7 @@ public class MainMenu extends AppCompatActivity implements OnMapReadyCallback {
                                         .title("Report By:" + report.getName())
                                         .snippet(report.getDescription())
                                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.reportmarker)));
-                                marker.setTag(report); // Attach the report object to the marker
+                                marker.setTag(report);
                                 markers.add(marker);
                             }
                         }

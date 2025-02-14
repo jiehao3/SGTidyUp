@@ -124,7 +124,7 @@ public class RequestForm extends AppCompatActivity {
         currentImage.compress(Bitmap.CompressFormat.JPEG, 70, stream);
         byte[] imageBytes = stream.toByteArray();
 
-        String subject = "Disposal Request by ";
+        String subject = "Disposal Request";
         String body = "I hope this email finds you well. I would like to request the disposal of an item with the following details:\n\n" +
                             "Name: " + nameStr + "\n" +
                             "Description: " + descriptionStr + "\n" +

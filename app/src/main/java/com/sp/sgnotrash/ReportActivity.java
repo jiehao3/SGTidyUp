@@ -90,8 +90,6 @@ public class ReportActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
-
-        // Initialize UI elements
         refreshButton = findViewById(R.id.refreshButton);
         ImageButton backButton = findViewById(R.id.backButton);
         Button btnAdd = findViewById(R.id.btnAdd1);
@@ -107,18 +105,9 @@ public class ReportActivity extends AppCompatActivity {
         });
         reportrecyclerView.setAdapter(adapter);
         requestQueue = Volley.newRequestQueue(this);
-        // Fetch reports from Astra DB
-
-        // Back button functionality
-        backButton.setOnClickListener(v -> finish()); // Goes back to the previous activity
-
-        // Add button functionality
+        backButton.setOnClickListener(v -> finish());
         btnAdd.setOnClickListener(v -> addReport());
-
         refreshButton.setOnClickListener(v -> getAllVolley());
-
-        // Clean button functionality
-        //btnClean.setOnClickListener(v -> clearReports());
     }
 
     private void addReport() {
@@ -141,47 +130,36 @@ public class ReportActivity extends AppCompatActivity {
     private void getAllVolley() {
         reportList.clear();
         queue = Volley.newRequestQueue(this);
-        String url = ReportVolleyHelper.url + "rows"; // Query all records
+        String url = ReportVolleyHelper.url + "rows";
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        // Check if the response was successful
                         if (volleyResponseStatus == 200) {
                             try {
                                 int count = response.getInt("count");
-                                // Clear the existing list if refreshing data
                                 reportList.clear();
 
                                 if (count > 0) {
                                     JSONArray data = response.getJSONArray("data");
-                                    // Use data.length() or count, but note that indexes go from 0 to count-1.
                                     for (int i = 0; i < data.length(); i++) {
                                         JSONObject item = data.getJSONObject(i);
                                         Report report = new Report();
-
-                                        // Update the lastID if necessary
                                         int id = item.getInt("id");
                                         if (ReportVolleyHelper.lastID < id) {
                                             ReportVolleyHelper.lastID = id;
                                         }
 
-                                        // Set properties for the report
                                         report.setReport_id(item.getString("id"));
                                         report.setName(item.getString("name"));
                                         report.setDescription(item.getString("description"));
                                         report.setLat(item.getString("lat"));
                                         report.setLon(item.getString("lon"));
                                         report.setImage(item.getString("image"));
-
-
-                                        // Add the report to the list
                                         reportList.add(report);
                                     }
-                                    // Notify the adapter that the data has changed
                                     adapter.notifyDataSetChanged();
                                 } else {
-                                    // Optionally handle the case when there are no records
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -206,8 +184,6 @@ public class ReportActivity extends AppCompatActivity {
                 return super.parseNetworkResponse(response);
             }
         };
-
-        // Add the request to the queue
         queue.add(jsonObjectRequest);
     }
 }

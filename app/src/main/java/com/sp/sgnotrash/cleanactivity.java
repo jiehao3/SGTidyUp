@@ -165,7 +165,6 @@ public class cleanactivity extends AppCompatActivity {
                 return ReportVolleyHelper.getHeaders();
             }
         };
-        // add JsonObjectRequest to the RequestQueue
         queue.add(jsonObjectRequest);
     }
 

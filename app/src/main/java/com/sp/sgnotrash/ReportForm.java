@@ -60,38 +60,27 @@ public class ReportForm extends AppCompatActivity {
     private double myLongitude = 0.0d;
 
     private Button getlocation;
-    //private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report_form);
-
-        // Initialize views
-
         imgPreview = findViewById(R.id.picture_placeholder);
         edtName = findViewById(R.id.enter_name);
         edtDescription = findViewById(R.id.enter_description);
         edtLocation = findViewById(R.id.enter_location);
         requestQueue = Volley.newRequestQueue(this);
-        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         id = getIntent().getStringExtra("ID");
-        // Button handlers
         setupButtons();
     }
 
     private void setupButtons() {
-        // Get Location Button
-        //findViewById(R.id.location_button).setOnClickListener(v -> getCurrentLocation());
-
-        // Take Photo Button
         findViewById(R.id.photo_button).setOnClickListener(v -> {
             if (checkCameraPermission()) {
                 openCamera();
             }
         });
 
-        // Delete Photo Button
         findViewById(R.id.delete_button).setOnClickListener(v -> {
             currentImage = null;
             imgPreview.setImageResource(android.R.color.transparent);
@@ -199,13 +188,11 @@ public class ReportForm extends AppCompatActivity {
                 return ReportVolleyHelper.getHeaders();
             }
         };
-        // add JsonObjectRequest to the RequestQueue
         queue.add(jsonObjectRequest);
     }
 
 
 
-    // Permission handling
     private boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {

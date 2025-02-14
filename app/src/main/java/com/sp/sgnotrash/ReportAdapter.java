@@ -17,7 +17,6 @@ import com.sp.sgnotrash.Report;
 
 import java.util.List;
 
-// ReportAdapter.java
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
     private List<Report> reports;
 
@@ -47,8 +46,6 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         Report report = reports.get(position);
         holder.tvDescription.setText(report.getDescription());
         holder.tvUser.setText(report.getName());
-
-        // Convert Base64 to Bitmap
         byte[] decodedString = Base64.decode(report.getImage(), Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         holder.ivReportImage.setImageBitmap(decodedByte);
